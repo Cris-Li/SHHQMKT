@@ -10,6 +10,7 @@ namespace SHHQMKT
 {
     class Program
     {
+        //解析行情文件
         static public MKTDT MKTDTParse(string[] strArr)
         {
             if (strArr[0] == "MD003")
@@ -96,56 +97,155 @@ namespace SHHQMKT
 
         }
 
+        //解析基础信息文件
+        static public CPXXMMDD CPXXMMDDParse(string[] strArr)
+        {
+            return new CPXXMMDD
+            {
+                SecurityID = strArr[0],
+                ISIN = strArr[1],
+                Updatetime = strArr[2],
+                ChineseName = strArr[3],
+                EnglishName = strArr[4],
+                BasicCode = strArr[5],
+                MarketType = strArr[6],
+                SecurityType = strArr[7],
+                SecuritySubType = strArr[8],
+                CurrencyType = strArr[9],
+                FaceValue = strArr[10] == "" ? 0 : decimal.Parse(strArr[10]),
+                UnmarketableAmount = strArr[11] == "" ? 0 : decimal.Parse(strArr[11]),
+                LastTradeDate = strArr[12],
+                IssueDate = strArr[13],
+                SETNo = strArr[14],
+                BuyUnit = strArr[15] == "" ? 0 : decimal.Parse(strArr[15]),
+                SellUnit = strArr[16] == "" ? 0 : decimal.Parse(strArr[16]),
+                AmountLowLimit = strArr[17] == "" ? 0 : decimal.Parse(strArr[17]),
+                AmountHighLimt = strArr[18] == "" ? 0 : decimal.Parse(strArr[18]),
+                PreClose = strArr[19] == "" ? 0 : decimal.Parse(strArr[19]),
+                PriceStall = strArr[20] == "" ? 0 : decimal.Parse(strArr[20]),
+                PriceLimitType = strArr[21],
+                HighLimt = strArr[22] == "" ? 0 : decimal.Parse(strArr[22]),
+                LowLimit_ = strArr[23] == "" ? 0 : decimal.Parse(strArr[23]),
+                ExRightsRatio = strArr[24] == "" ? 0 : decimal.Parse(strArr[24]),
+                ExDividendAmount = strArr[25] == "" ? 0 : decimal.Parse(strArr[25]),
+                FinancingTag = strArr[26],
+                MarginTag = strArr[27],
+                State = strArr[28],
+                Comment = strArr[29]
+            };
+        }
 
-        static public void JobMKT(string strReadFilePath)
+        /**
+         * 更新脚本
+         **/
+        static public void JobMKT(string strReadFilePath, HashSet<int> lines)
         {
             using (var db = new MKTContext())
             {
 
                 StreamReader srReadFile = new StreamReader(strReadFilePath);
-                List<MKTDT> mKTDTs = new List<MKTDT>();
-                int line = 0;
+                
+                int i = 0; //标记行号
                 //循环读入
                 while (!srReadFile.EndOfStream)
                 {
                     string strReadLine = srReadFile.ReadLine(); //读取每行数据
-                    string[] strArr = strReadLine.Replace(" ", "").Split('|');
-                    
-
-                    MKTDT mkt = MKTDTParse(strArr);
-                    if (mkt != null)
-                    {
-                        db.MKTDTs.Add(mkt);
-                        try
+                    if (lines.Contains(i))
+                    {                    
+                        string[] strArr = strReadLine.Replace(" ", "").Split('|');
+                        MKTDT mkt = MKTDTParse(strArr);
+                        if (mkt != null)
                         {
-                            db.SaveChanges();
+                            db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).UpdateAsync(c => mkt);
+                            Console.WriteLine(strReadLine); //屏幕打印每行数据
                         }
-                        catch(Exception e)
-                        {
-                            throw;
-                        }
-                        //db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).UpdateAsync(c => mkt);
                     }
-                    Console.WriteLine(strReadLine); //屏幕打印每行数据
-                    line++;
+                    i++; // 行号+1
                 }
-                //db.MKTDTs.AddRange(mKTDTs);
-                //db.SaveChanges();
-                // 关闭读取流文件
+                try
+                {
+                    db.SaveChanges();
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e);
+                }
                 srReadFile.Close();
             }
         }
 
+        static HashSet<int> InitMKT()
+        {
+            StreamReader srReadFile = new StreamReader("C:\\Users\\l_cry\\Desktop\\MKTDT00.TXT");
+            List<MKTDT> mKTDTs = new List<MKTDT>();
+            HashSet<string> mktstr = new HashSet<string>() { "018009", "113013", "019009", "511010", "511020", "511030" };
+            HashSet<int> lines = new HashSet<int>();
+
+            //循环读入
+            using (var db = new MKTContext())
+            {
+                db.MKTDTs.Delete();
+                int i = 0;//标记行号
+                while (!srReadFile.EndOfStream)
+                {
+                    string strReadLine = srReadFile.ReadLine(); //读取每行数据
+                    string[] strArr = strReadLine.Replace(" ", "").Split('|');
+
+                    if (mktstr.Contains(strArr[1]))
+                    {
+                        MKTDT mkt = MKTDTParse(strArr);
+                        db.MKTDTs.Add(mkt);
+                        lines.Add(i);
+                    }
+
+                    i++;
+                }
+                db.SaveChanges();
+            }
+            srReadFile.Close();
+            return lines;
+        }
+
+        static int InitCPXX(string filePath)
+        {
+            StreamReader srReadFile = new StreamReader(filePath);
+            List<CPXXMMDD> cPXXMMDDs = new List<CPXXMMDD>();
+
+            //循环读入
+            using (var db = new MKTContext())
+            {
+                db.CPXXMMDDs.Delete();
+                
+                while (!srReadFile.EndOfStream)
+                {
+                    string strReadLine = srReadFile.ReadLine(); //读取每行数据
+                    string[] strArr = strReadLine.Replace(" ", "").Split('|');
+                    try
+                    {
+                        CPXXMMDD cPXXMMDD = CPXXMMDDParse(strArr);
+                        cPXXMMDDs.Add(cPXXMMDD);
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                }
+                srReadFile.Close();
+                db.CPXXMMDDs.AddRange(cPXXMMDDs);
+                db.SaveChanges();
+            }
+            return 0;
+        }
+
         static void Main(string[] args)
         {
-            JobMKT("C:\\Users\\l_cry\\Desktop\\MKTDT00.TXT");
-            //using (var ctx = new MKTContext())
-            //{
-            //    var stud = new MKTDT() { SecurityID = "000300" };
+            //记录要更新的行号
+            //HashSet<int> lines = InitMKT(); 
+            string.Format("{0:MMdd}",DateTime.Now);
+            InitCPXX("C:\\Users\\l_cry\\source\\repos\\SHHQMKT\\SHHQMKT\\res\\cpxx0327.txt");
 
-            //    ctx.MKTDTs.Add(stud);
-            //    ctx.SaveChanges();
-            //}
+            //JobMKT("C:\\Users\\l_cry\\Desktop\\MKTDT00.TXT", lines);
+            //DateTime.Now;
         }
     }
 }

@@ -58,6 +58,10 @@
             modelBuilder.Entity<MKTDT>().Property(p => p.SellVolume5).HasPrecision(12, 0);
             modelBuilder.Entity<MKTDT>().Property(p => p.PreCloseIOPV).HasPrecision(11, 3);
             modelBuilder.Entity<MKTDT>().Property(p => p.IOPV).HasPrecision(11, 3);
+
+            modelBuilder.Entity<CPXXMMDD>().Property(p => p.FaceValue).HasPrecision(15, 3);
+            modelBuilder.Entity<CPXXMMDD>().Property(p => p.UnmarketableAmount).HasPrecision(15, 0);
+            modelBuilder.Entity<CPXXMMDD>().Property(p => p.BuyUnit).HasPrecision(12, 0);
         }
     }
 
