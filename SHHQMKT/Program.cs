@@ -96,40 +96,56 @@ namespace SHHQMKT
 
         }
 
+
         static public void JobMKT(string strReadFilePath)
         {
-            MKTContext db = new MKTContext();
-
-            StreamReader srReadFile = new StreamReader(strReadFilePath);
-            List<MKTDT> mKTDT00s = new List<MKTDT>();
-            //循环读入
-            while (!srReadFile.EndOfStream)
+            using (var db = new MKTContext())
             {
-                string strReadLine = srReadFile.ReadLine(); //读取每行数据
-                string[] strArr = strReadLine.Replace(" ", "").Split('|');
-                MKTDT mkt = MKTDTParse(strArr);
-                if (mkt != null)
+
+                StreamReader srReadFile = new StreamReader(strReadFilePath);
+                List<MKTDT> mKTDTs = new List<MKTDT>();
+                int line = 0;
+                //循环读入
+                while (!srReadFile.EndOfStream)
                 {
-                    mKTDT00s.Add(mkt);
-                    //db.MKTDT00s.Where(c => c.SecurityID == mkt.SecurityID).UpdateAsync(c => new MKTDT00 { OpenPrice = 100 });
+                    string strReadLine = srReadFile.ReadLine(); //读取每行数据
+                    string[] strArr = strReadLine.Replace(" ", "").Split('|');
+                    
+
+                    MKTDT mkt = MKTDTParse(strArr);
+                    if (mkt != null)
+                    {
+                        db.MKTDTs.Add(mkt);
+                        try
+                        {
+                            db.SaveChanges();
+                        }
+                        catch(Exception e)
+                        {
+                            throw;
+                        }
+                        //db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).UpdateAsync(c => mkt);
+                    }
+                    Console.WriteLine(strReadLine); //屏幕打印每行数据
+                    line++;
                 }
-                Console.WriteLine(strReadLine); //屏幕打印每行数据
+                //db.MKTDTs.AddRange(mKTDTs);
+                //db.SaveChanges();
+                // 关闭读取流文件
+                srReadFile.Close();
             }
-            db.SaveChanges();
-            // 关闭读取流文件
-            srReadFile.Close();
         }
 
         static void Main(string[] args)
         {
-            //JobMKT("C:\\Users\\l_cry\\Desktop\\MKTDT00.TXT");
-            using (var ctx = new MKTContext())
-            {
-                var stud = new MKTDT() { SecurityID = "000300" };
+            JobMKT("C:\\Users\\l_cry\\Desktop\\MKTDT00.TXT");
+            //using (var ctx = new MKTContext())
+            //{
+            //    var stud = new MKTDT() { SecurityID = "000300" };
 
-                ctx.MKTDTs.Add(stud);
-                ctx.SaveChanges();
-            }
+            //    ctx.MKTDTs.Add(stud);
+            //    ctx.SaveChanges();
+            //}
         }
     }
 }

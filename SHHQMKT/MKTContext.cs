@@ -2,6 +2,7 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity;
     using System.Linq;
 
@@ -25,17 +26,50 @@
         // public virtual DbSet<MyEntity> MyEntities { get; set; }
         public DbSet<MKTDT> MKTDTs { get; set; }
         public DbSet<CPXXMMDD> CPXXMMDDs { get; set; }
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<MKTDT>().Property(p => p.TradeVolume).HasPrecision(16,0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.TotalValueTraded).HasPrecision(16, 2);
+            modelBuilder.Entity<MKTDT>().Property(p => p.PreClosePx).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.OpenPrice).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.HighPrice).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.LowPrice).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.TradePrice).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.ClosePx).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyPrice1).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyVolume1).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellPrice1).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellVolume1).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyPrice2).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyVolume2).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellPrice2).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellVolume2).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyPrice3).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyVolume3).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellPrice3).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellVolume3).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyPrice4).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyVolume4).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellPrice4).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellVolume4).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyPrice5).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.BuyVolume5).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellPrice5).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.SellVolume5).HasPrecision(12, 0);
+            modelBuilder.Entity<MKTDT>().Property(p => p.PreCloseIOPV).HasPrecision(11, 3);
+            modelBuilder.Entity<MKTDT>().Property(p => p.IOPV).HasPrecision(11, 3);
+        }
     }
 
     public class MKTDT
     {
         [Key]
         public int Id { get; set; }
-        [MaxLength(4)]
+        [MaxLength(5)]
         public string MDStreamID { get; set; }
         [MaxLength(6)]
         public string SecurityID { get; set; }
-        [MaxLength(8)]
+        [MaxLength(15)]
         public string Symbol { get; set; }
         public decimal TradeVolume { get; set; }
         public decimal TotalValueTraded { get; set; }
@@ -67,7 +101,9 @@
         public decimal SellVolume5 { get; set; }
         public decimal PreCloseIOPV { get; set; }
         public decimal IOPV { get; set; }
+        [MaxLength(8)]
         public string TradingPhaseCode { get; set; }
+        [MaxLength(12)]
         public string Timestamp { get; set; }
     }
 
@@ -125,5 +161,4 @@
         public string Comment { get; set; }
     }
 
-
-}
+}    
