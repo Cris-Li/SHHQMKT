@@ -97,7 +97,6 @@ namespace SHHQMKT
                 };
             }
             else return null;
-
         }
 
         //解析基础信息文件
