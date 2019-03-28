@@ -51,7 +51,7 @@ namespace SHHQMKT
                     SellPrice5 = decimal.Parse(strArr[29]),
                     SellVolume5 = decimal.Parse(strArr[30]),
                     TradingPhaseCode = strArr[31],
-                    Timestamp = strArr[32]
+                    Timestamp = String.Format("{0:HH:mm:ss.fff}", DateTime.Now)
                 };
             }
             else if (strArr[0] == "MD004")
@@ -92,7 +92,8 @@ namespace SHHQMKT
                     PreCloseIOPV = decimal.Parse(strArr[31]),
                     IOPV = decimal.Parse(strArr[32]),
                     TradingPhaseCode = strArr[33],
-                    Timestamp = strArr[34]
+                    //Timestamp = strArr[34]
+                    Timestamp = String.Format("{0:HH:mm:ss.fff}", DateTime.Now)
                 };
             }
             else return null;
@@ -146,20 +147,59 @@ namespace SHHQMKT
             {
 
                 StreamReader srReadFile = new StreamReader(strReadFilePath);
-                
+                string txt = srReadFile.ReadToEnd();
+                srReadFile.Close();
+                string[] lineSet = txt.Split('\n');
                 int i = 0; //标记行号
-                //循环读入
-                while (!srReadFile.EndOfStream)
+                foreach (string strReadLine in lineSet)
                 {
-                    string strReadLine = srReadFile.ReadLine(); //读取每行数据
                     if (lines.Contains(i))
                     {                    
                         string[] strArr = strReadLine.Replace(" ", "").Split('|');
+
                         MKTDT mkt = MKTDTParse(strArr);
                         if (mkt != null)
                         {
-                            db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).UpdateAsync(c => mkt);
-                            Console.WriteLine(mkt.SecurityID+" "+mkt.Symbol+" "+mkt.TradePrice+" "+mkt.Timestamp); //屏幕打印每行数据
+                            db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).Update(c => new MKTDT()
+                            {
+                                MDStreamID = mkt.MDStreamID,
+                                SecurityID = mkt.SecurityID,
+                                Symbol = mkt.Symbol,
+                                TradeVolume = mkt.TradeVolume,
+                                TotalValueTraded = mkt.TotalValueTraded,
+                                PreClosePx = mkt.PreClosePx,
+                                OpenPrice = mkt.OpenPrice,
+                                HighPrice = mkt.HighPrice,
+                                LowPrice = mkt.LowPrice,
+                                TradePrice = mkt.TradePrice,
+                                ClosePx = mkt.ClosePx,
+                                BuyPrice1 = mkt.BuyPrice1,
+                                BuyVolume1 = mkt.BuyVolume1,
+                                SellPrice1 = mkt.SellPrice1,
+                                SellVolume1 = mkt.SellVolume1,
+                                BuyPrice2 = mkt.BuyPrice2,
+                                BuyVolume2 = mkt.BuyVolume2,
+                                SellPrice2 = mkt.SellPrice2,
+                                SellVolume2 = mkt.SellVolume2,
+                                BuyPrice3 = mkt.BuyPrice3,
+                                BuyVolume3 = mkt.BuyVolume3,
+                                SellPrice3 = mkt.SellPrice3,
+                                SellVolume3 = mkt.SellVolume3,
+                                BuyPrice4 = mkt.BuyPrice4,
+                                BuyVolume4 = mkt.BuyVolume4,
+                                SellPrice4 = mkt.SellPrice4,
+                                SellVolume4 = mkt.SellVolume4,
+                                BuyPrice5 = mkt.BuyPrice5,
+                                BuyVolume5 = mkt.BuyVolume5,
+                                SellPrice5 = mkt.SellPrice5,
+                                SellVolume5 = mkt.SellVolume5,
+                                PreCloseIOPV = mkt.PreCloseIOPV,
+                                IOPV = mkt.IOPV,
+                                TradingPhaseCode = mkt.TradingPhaseCode,
+                                Timestamp = mkt.Timestamp
+                            });
+
+                            Console.WriteLine(mkt.SecurityID+" "+mkt.TradePrice+" "+mkt.Timestamp); //屏幕打印每行数据
                         }
                     }
                     i++; // 行号+1
@@ -189,23 +229,22 @@ namespace SHHQMKT
             {
                 db.MKTDTs.Delete();
                 int i = 0;//标记行号
-                while (!srReadFile.EndOfStream)
+                string txt = srReadFile.ReadToEnd();
+                srReadFile.Close();
+                string[] lineSet = txt.Split('\n');
+                foreach (string strReadLine in lineSet)
                 {
-                    string strReadLine = srReadFile.ReadLine(); //读取每行数据
                     string[] strArr = strReadLine.Replace(" ", "").Split('|');
-
-                    if (mktstr.Contains(strArr[1]))
+                    if (strArr.Length >= 2 && mktstr.Contains(strArr[1]))
                     {
                         MKTDT mkt = MKTDTParse(strArr);
                         db.MKTDTs.Add(mkt);
                         lines.Add(i);
                     }
-
                     i++;
                 }
                 db.SaveChanges();
-            }
-            srReadFile.Close();
+            }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
             return lines;
         }
 
@@ -237,6 +276,7 @@ namespace SHHQMKT
                 db.CPXXMMDDs.AddRange(cPXXMMDDs);
                 db.SaveChanges();
             }
+            Console.WriteLine("CPXX初始化结束");
             return 0;
         }
 
@@ -246,14 +286,17 @@ namespace SHHQMKT
             string CPXXPath = ConfigurationManager.AppSettings["CPXXPath"];
 
             //记录要更新的行号
+            Console.WriteLine("初始化MKT");
             HashSet<int> lines = InitMKT(MKTPath); 
             string filePath = string.Format(CPXXPath, DateTime.Now);
-            InitCPXX(filePath);
+            Console.WriteLine("初始化CPXX");
+            //InitCPXX(filePath);
 
-            while (true)
+            while (DateTime.Now.TimeOfDay < new TimeSpan(15, 30, 0))
             {
-                Task<int> task = new Task<int>(()=>JobMKT(filePath, lines));
-                task.Start();
+                //Task<int> task = new Task<int>(()=>JobMKT(MKTPath, lines));
+                //task.Start();
+                JobMKT(MKTPath, lines);
                 Thread.Sleep(50);
             }
         }
