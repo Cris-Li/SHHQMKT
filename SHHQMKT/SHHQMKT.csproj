@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="res\cpxx0327.txt" />
+    <Content Include="res\MKTDT00.TXT" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
