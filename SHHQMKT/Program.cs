@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Configuration;
 
 namespace SHHQMKT
 {
@@ -138,7 +140,7 @@ namespace SHHQMKT
         /**
          * 更新脚本
          **/
-        static public void JobMKT(string strReadFilePath, HashSet<int> lines)
+        static public int JobMKT(string strReadFilePath, HashSet<int> lines)
         {
             using (var db = new MKTContext())
             {
@@ -157,7 +159,7 @@ namespace SHHQMKT
                         if (mkt != null)
                         {
                             db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).UpdateAsync(c => mkt);
-                            Console.WriteLine(strReadLine); //屏幕打印每行数据
+                            Console.WriteLine(mkt.SecurityID+" "+mkt.Symbol+" "+mkt.TradePrice+" "+mkt.Timestamp); //屏幕打印每行数据
                         }
                     }
                     i++; // 行号+1
@@ -172,11 +174,12 @@ namespace SHHQMKT
                 }
                 srReadFile.Close();
             }
+            return 1;
         }
 
-        static HashSet<int> InitMKT()
+        static HashSet<int> InitMKT(string filePath)
         {
-            StreamReader srReadFile = new StreamReader("C:\\Users\\l_cry\\Desktop\\MKTDT00.TXT");
+            StreamReader srReadFile = new StreamReader(filePath);
             List<MKTDT> mKTDTs = new List<MKTDT>();
             HashSet<string> mktstr = new HashSet<string>() { "018009", "113013", "019009", "511010", "511020", "511030" };
             HashSet<int> lines = new HashSet<int>();
@@ -239,13 +242,20 @@ namespace SHHQMKT
 
         static void Main(string[] args)
         {
-            //记录要更新的行号
-            //HashSet<int> lines = InitMKT(); 
-            string.Format("{0:MMdd}",DateTime.Now);
-            InitCPXX("C:\\Users\\l_cry\\source\\repos\\SHHQMKT\\SHHQMKT\\res\\cpxx0327.txt");
+            string MKTPath = ConfigurationManager.AppSettings["MKTPath"];
+            string CPXXPath = ConfigurationManager.AppSettings["CPXXPath"];
 
-            //JobMKT("C:\\Users\\l_cry\\Desktop\\MKTDT00.TXT", lines);
-            //DateTime.Now;
+            //记录要更新的行号
+            HashSet<int> lines = InitMKT(MKTPath); 
+            string filePath = string.Format(CPXXPath, DateTime.Now);
+            InitCPXX(filePath);
+
+            while (true)
+            {
+                Task<int> task = new Task<int>(()=>JobMKT(filePath, lines));
+                task.Start();
+                Thread.Sleep(50);
+            }
         }
     }
 }
