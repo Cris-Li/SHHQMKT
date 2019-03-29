@@ -12,6 +12,8 @@ namespace SHHQMKT
 {
     class Program
     {
+        static public Dictionary<string, MKTDT> MKTdict;
+
         //解析行情文件
         static public MKTDT MKTDTParse(string[] strArr)
         {
@@ -137,6 +139,19 @@ namespace SHHQMKT
             };
         }
 
+        static public bool SelfDefineEquals(MKTDT mkt1, MKTDT mkt2)
+        {
+            mkt1.GetType().GetProperties();
+            foreach (var col in mkt1.GetType().GetProperties())
+            {
+                if ((col.PropertyType.Name != "String" && col.Name!="Id") && !col.GetValue(mkt1).Equals(col.GetValue(mkt2)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         /**
          * 更新脚本
          **/
@@ -144,80 +159,81 @@ namespace SHHQMKT
         {
             using (var db = new MKTContext())
             {
-
-                StreamReader srReadFile = new StreamReader(strReadFilePath);
-                string txt = srReadFile.ReadToEnd();
-                srReadFile.Close();
-                string[] lineSet = txt.Split('\n');
-                int i = 0; //标记行号
-                foreach (string strReadLine in lineSet)
-                {
-                    if (lines.Contains(i))
-                    {                    
-                        string[] strArr = strReadLine.Replace(" ", "").Split('|');
-
-                        MKTDT mkt = MKTDTParse(strArr);
-                        if (mkt != null)
-                        {
-                            db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).Update(c => new MKTDT()
-                            {
-                                MDStreamID = mkt.MDStreamID,
-                                SecurityID = mkt.SecurityID,
-                                Symbol = mkt.Symbol,
-                                TradeVolume = mkt.TradeVolume,
-                                TotalValueTraded = mkt.TotalValueTraded,
-                                PreClosePx = mkt.PreClosePx,
-                                OpenPrice = mkt.OpenPrice,
-                                HighPrice = mkt.HighPrice,
-                                LowPrice = mkt.LowPrice,
-                                TradePrice = mkt.TradePrice,
-                                ClosePx = mkt.ClosePx,
-                                BuyPrice1 = mkt.BuyPrice1,
-                                BuyVolume1 = mkt.BuyVolume1,
-                                SellPrice1 = mkt.SellPrice1,
-                                SellVolume1 = mkt.SellVolume1,
-                                BuyPrice2 = mkt.BuyPrice2,
-                                BuyVolume2 = mkt.BuyVolume2,
-                                SellPrice2 = mkt.SellPrice2,
-                                SellVolume2 = mkt.SellVolume2,
-                                BuyPrice3 = mkt.BuyPrice3,
-                                BuyVolume3 = mkt.BuyVolume3,
-                                SellPrice3 = mkt.SellPrice3,
-                                SellVolume3 = mkt.SellVolume3,
-                                BuyPrice4 = mkt.BuyPrice4,
-                                BuyVolume4 = mkt.BuyVolume4,
-                                SellPrice4 = mkt.SellPrice4,
-                                SellVolume4 = mkt.SellVolume4,
-                                BuyPrice5 = mkt.BuyPrice5,
-                                BuyVolume5 = mkt.BuyVolume5,
-                                SellPrice5 = mkt.SellPrice5,
-                                SellVolume5 = mkt.SellVolume5,
-                                PreCloseIOPV = mkt.PreCloseIOPV,
-                                IOPV = mkt.IOPV,
-                                TradingPhaseCode = mkt.TradingPhaseCode,
-                                Timestamp = mkt.Timestamp
-                            });
-
-                            Console.WriteLine(mkt.SecurityID+" "+mkt.TradePrice+" "+mkt.Timestamp); //屏幕打印每行数据
-                        }
-                    }
-                    i++; // 行号+1
-                }
                 try
                 {
+                    StreamReader srReadFile = new StreamReader(strReadFilePath, Encoding.Default);
+                    string txt = srReadFile.ReadToEnd();
+                    srReadFile.Close();
+                    string[] lineSet = txt.Split('\n');
+                    int i = 0; //标记行号
+                    foreach (string strReadLine in lineSet)
+                    {
+                        if (lines.Contains(i))
+                        {
+                            string[] strArr = strReadLine.Replace(" ", "").Split('|');
+
+                            MKTDT mkt = MKTDTParse(strArr);
+                            if (mkt != null && !SelfDefineEquals(mkt, MKTdict[strArr[1]]))
+                            {
+                                MKTdict[strArr[1]] = mkt;
+                                db.MKTDTs.Where(c => c.SecurityID == mkt.SecurityID).Update(c => new MKTDT()
+                                {
+                                    MDStreamID = mkt.MDStreamID,
+                                    SecurityID = mkt.SecurityID,
+                                    Symbol = mkt.Symbol,
+                                    TradeVolume = mkt.TradeVolume,
+                                    TotalValueTraded = mkt.TotalValueTraded,
+                                    PreClosePx = mkt.PreClosePx,
+                                    OpenPrice = mkt.OpenPrice,
+                                    HighPrice = mkt.HighPrice,
+                                    LowPrice = mkt.LowPrice,
+                                    TradePrice = mkt.TradePrice,
+                                    ClosePx = mkt.ClosePx,
+                                    BuyPrice1 = mkt.BuyPrice1,
+                                    BuyVolume1 = mkt.BuyVolume1,
+                                    SellPrice1 = mkt.SellPrice1,
+                                    SellVolume1 = mkt.SellVolume1,
+                                    BuyPrice2 = mkt.BuyPrice2,
+                                    BuyVolume2 = mkt.BuyVolume2,
+                                    SellPrice2 = mkt.SellPrice2,
+                                    SellVolume2 = mkt.SellVolume2,
+                                    BuyPrice3 = mkt.BuyPrice3,
+                                    BuyVolume3 = mkt.BuyVolume3,
+                                    SellPrice3 = mkt.SellPrice3,
+                                    SellVolume3 = mkt.SellVolume3,
+                                    BuyPrice4 = mkt.BuyPrice4,
+                                    BuyVolume4 = mkt.BuyVolume4,
+                                    SellPrice4 = mkt.SellPrice4,
+                                    SellVolume4 = mkt.SellVolume4,
+                                    BuyPrice5 = mkt.BuyPrice5,
+                                    BuyVolume5 = mkt.BuyVolume5,
+                                    SellPrice5 = mkt.SellPrice5,
+                                    SellVolume5 = mkt.SellVolume5,
+                                    PreCloseIOPV = mkt.PreCloseIOPV,
+                                    IOPV = mkt.IOPV,
+                                    TradingPhaseCode = mkt.TradingPhaseCode,
+                                    Timestamp = mkt.Timestamp
+                                });
+                                Console.WriteLine(mkt.SecurityID + " " + mkt.TradePrice + " " + mkt.Timestamp); //屏幕打印每行数据
+                                
+                            }
+                        }
+                        i++; // 行号+1
+                    }
                     db.SaveChanges();
-                }
-                catch(Exception e)
+                    
+                }catch(Exception e)
                 {
                     Console.WriteLine(e);
                 }
-                srReadFile.Close();
             }
             return 1;
         }
 
         static HashSet<int> InitMKT(string filePath)
         {
+            MKTdict = new Dictionary<string, MKTDT>();
+
             StreamReader srReadFile = new StreamReader(filePath);
             List<MKTDT> mKTDTs = new List<MKTDT>();
             HashSet<string> mktstr = new HashSet<string>() { "018009", "113013", "019009", "511010", "511020", "511030" };
@@ -237,8 +253,12 @@ namespace SHHQMKT
                     if (strArr.Length >= 2 && mktstr.Contains(strArr[1]))
                     {
                         MKTDT mkt = MKTDTParse(strArr);
-                        db.MKTDTs.Add(mkt);
-                        lines.Add(i);
+                        if (mkt != null)
+                        {
+                            db.MKTDTs.Add(mkt);
+                            lines.Add(i);
+                            MKTdict.Add(strArr[1], mkt);//将mkt存储到临时变量里
+                        } 
                     }
                     i++;
                 }
@@ -283,7 +303,7 @@ namespace SHHQMKT
         {
             string MKTPath = ConfigurationManager.AppSettings["MKTPath"];
             string CPXXPath = ConfigurationManager.AppSettings["CPXXPath"];
-
+            
             //记录要更新的行号
             Console.WriteLine("初始化MKT");
             HashSet<int> lines = InitMKT(MKTPath); 
